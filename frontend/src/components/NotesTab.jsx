@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight, BookOpen, RefreshCw, AlertCircle, FileQuestion, Loader } from "lucide-react";
 import axios from "axios";
+import { getLocalDocumentData, saveLocalDocumentData, buildDeterministicContentClient } from "../services/clientWorkspace.js";
 
 function SkeletonNotes() {
   return (
@@ -101,20 +102,44 @@ export default function NotesTab({ activeDocId, documents, addToast }) {
     setLoading(true);
     setError(null);
 
+    // 1. Fast local check (instant render)
+    if (!force) {
+      const localNotes = getLocalDocumentData(activeDocId, "notes");
+      if (localNotes && localNotes.length > 0) {
+        setNotes(localNotes);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // 2. Try backend endpoint
     try {
-      const res = await axios.post("/api/generate/notes", { documentId: activeDocId, force });
+      const res = await axios.post("/api/generate/notes", { documentId: activeDocId, force }, { timeout: 4000 });
       if (res.data?.notes && res.data.notes.length > 0) {
         setNotes(res.data.notes);
-      } else {
-        setNotes([]);
+        saveLocalDocumentData(activeDocId, "notes", res.data.notes);
+        setLoading(false);
+        return;
       }
     } catch (err) {
-      const msg = err.response?.data?.error || err.message || "Failed to generate notes.";
-      setError(msg);
-      setNotes(null);
-    } finally {
-      setLoading(false);
+      console.info("Backend notes endpoint notice, falling back to local workspace data");
     }
+
+    // 3. Fallback: check local storage or generate on the fly
+    const localNotes = getLocalDocumentData(activeDocId, "notes");
+    if (localNotes && localNotes.length > 0) {
+      setNotes(localNotes);
+    } else if (activeDoc?.rawText || activeDoc?.sections) {
+      const generated = buildDeterministicContentClient({
+        rawText: activeDoc.rawText || "",
+        sections: activeDoc.sections || [],
+      }, activeDoc.courseTag || "General");
+      setNotes(generated.notes);
+      saveLocalDocumentData(activeDocId, "notes", generated.notes);
+    } else {
+      setNotes([]);
+    }
+    setLoading(false);
   };
 
   const handleRegenerate = async () => {

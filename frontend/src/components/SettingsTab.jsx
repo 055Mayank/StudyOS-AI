@@ -10,13 +10,30 @@ export default function SettingsTab({ user, setUser, darkMode, setDarkMode, addT
 
   const saveProfile = () => {
     setUser({ ...user, name, email });
+    try {
+      localStorage.setItem("studyos_user", JSON.stringify({ ...user, name, email }));
+    } catch {}
     addToast("Profile updated!", "success");
   };
 
   const saveApiKey = () => {
     if (!apiKey.trim()) { addToast("Enter a valid API key", "error"); return; }
-    addToast("API key saved securely ✨", "success");
+    localStorage.setItem("studyos_gemini_key", apiKey.trim());
+    addToast("Gemini API key saved to workspace ✨", "success");
     setApiKey("");
+  };
+
+  const clearFiles = () => {
+    try {
+      localStorage.removeItem("studyos_documents");
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith("studyos_notes_") || k.startsWith("studyos_flashcards_") || k.startsWith("studyos_summary_")) {
+          localStorage.removeItem(k);
+        }
+      });
+    } catch {}
+    addToast("Workspace files cleared. Refreshing...", "info");
+    setTimeout(() => window.location.reload(), 800);
   };
 
   return (
@@ -119,8 +136,8 @@ export default function SettingsTab({ user, setUser, darkMode, setDarkMode, addT
             <div className="quota-fill" style={{ width: "4.8%" }} />
           </div>
         </div>
-        <button className="btn btn-secondary btn-sm" onClick={() => addToast("Files cleared", "info")}>
-          Clear uploaded files
+        <button className="btn btn-secondary btn-sm" onClick={clearFiles}>
+          Clear workspace files
         </button>
       </div>
 

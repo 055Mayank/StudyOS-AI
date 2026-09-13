@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { FileText, RefreshCw, Copy, Check, CheckSquare, Square, AlertCircle, FileQuestion, Loader } from "lucide-react";
 import axios from "axios";
+import { getLocalDocumentData, saveLocalDocumentData, buildDeterministicContentClient } from "../services/clientWorkspace.js";
 
 export default function SummaryTab({ activeDocId, documents, addToast }) {
   const [summary, setSummary] = useState(null);
@@ -35,21 +36,48 @@ export default function SummaryTab({ activeDocId, documents, addToast }) {
     setLoading(true);
     setError(null);
 
+    // 1. Fast local check (instant render)
+    if (!force) {
+      const localSum = getLocalDocumentData(activeDocId, "summary");
+      if (localSum && localSum.tldr) {
+        setSummary(localSum);
+        setActions(localSum.actionItems || []);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // 2. Try backend
     try {
-      const res = await axios.post("/api/generate/summary", { documentId: activeDocId, force });
+      const res = await axios.post("/api/generate/summary", { documentId: activeDocId, force }, { timeout: 4000 });
       if (res.data?.summary) {
         setSummary(res.data.summary);
         setActions(res.data.summary.actionItems || []);
-      } else {
-        setSummary(null);
+        saveLocalDocumentData(activeDocId, "summary", res.data.summary);
+        setLoading(false);
+        return;
       }
     } catch (err) {
-      const msg = err.response?.data?.error || err.message || "Failed to generate summary.";
-      setError(msg);
-      setSummary(null);
-    } finally {
-      setLoading(false);
+      console.info("Backend summary notice, using local workspace data");
     }
+
+    // 3. Fallback: check local storage or generate on the fly
+    const localSum = getLocalDocumentData(activeDocId, "summary");
+    if (localSum && localSum.tldr) {
+      setSummary(localSum);
+      setActions(localSum.actionItems || []);
+    } else if (activeDoc?.rawText || activeDoc?.sections) {
+      const generated = buildDeterministicContentClient({
+        rawText: activeDoc.rawText || "",
+        sections: activeDoc.sections || [],
+      }, activeDoc.courseTag || "General");
+      setSummary(generated.summary);
+      setActions(generated.summary.actionItems || []);
+      saveLocalDocumentData(activeDocId, "summary", generated.summary);
+    } else {
+      setSummary(null);
+    }
+    setLoading(false);
   };
 
   const handleRegenerate = async () => {

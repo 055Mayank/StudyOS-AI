@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, RefreshCw, Layers, RotateCcw, AlertCircle, FileQuestion, Loader } from "lucide-react";
 import axios from "axios";
+import { getLocalDocumentData, saveLocalDocumentData, buildDeterministicContentClient } from "../services/clientWorkspace.js";
 
 export default function FlashcardsTab({ activeDocId, documents, addToast }) {
   const [cards, setCards] = useState([]);
@@ -53,20 +54,44 @@ export default function FlashcardsTab({ activeDocId, documents, addToast }) {
     setFlipped(false);
     setCurrent(0);
 
+    // 1. Fast local check (instant render)
+    if (!force) {
+      const localCards = getLocalDocumentData(activeDocId, "flashcards");
+      if (localCards && localCards.length > 0) {
+        setCards(localCards);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // 2. Try backend
     try {
-      const res = await axios.post("/api/generate/flashcards", { documentId: activeDocId, force });
+      const res = await axios.post("/api/generate/flashcards", { documentId: activeDocId, force }, { timeout: 4000 });
       if (res.data?.flashcards && res.data.flashcards.length > 0) {
         setCards(res.data.flashcards);
-      } else {
-        setCards([]);
+        saveLocalDocumentData(activeDocId, "flashcards", res.data.flashcards);
+        setLoading(false);
+        return;
       }
     } catch (err) {
-      const msg = err.response?.data?.error || err.message || "Failed to generate flashcards.";
-      setError(msg);
-      setCards([]);
-    } finally {
-      setLoading(false);
+      console.info("Backend flashcards notice, using local workspace data");
     }
+
+    // 3. Fallback: check local storage or generate on the fly
+    const localCards = getLocalDocumentData(activeDocId, "flashcards");
+    if (localCards && localCards.length > 0) {
+      setCards(localCards);
+    } else if (activeDoc?.rawText || activeDoc?.sections) {
+      const generated = buildDeterministicContentClient({
+        rawText: activeDoc.rawText || "",
+        sections: activeDoc.sections || [],
+      }, activeDoc.courseTag || "General");
+      setCards(generated.flashcards);
+      saveLocalDocumentData(activeDocId, "flashcards", generated.flashcards);
+    } else {
+      setCards([]);
+    }
+    setLoading(false);
   };
 
   const handleRegenerate = async () => {
