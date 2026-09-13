@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
+    "test": "node --test --test-force-exit tests/*.test.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push"
   },

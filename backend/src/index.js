@@ -69,7 +69,7 @@ app.use((err, req, res, next) => {
 // =============================================
 // START (only listen directly when not on Vercel)
 // =============================================
-if (!process.env.VERCEL) {
+if (!process.env.VERCEL && require.main === module) {
   app.listen(PORT, () => {
     const hasGemini = !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "your_gemini_api_key_here");
     const hasOpenAI = !!(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== "your_openai_api_key_here");

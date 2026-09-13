@@ -485,10 +485,21 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      {/* Skip to Main Content Link for screen readers & keyboard navigation */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
+      {/* Screen reader live region for status announcements */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {toasts.length > 0 ? toasts[toasts.length - 1].message : ""}
+      </div>
+
       {/* Mobile overlay */}
       <div
         className={`sidebar-overlay ${sidebarOpen ? "open" : ""}`}
         onClick={() => setSidebarOpen(false)}
+        aria-hidden="true"
       />
 
       <Sidebar
@@ -520,9 +531,15 @@ export default function App() {
           onGoogleLogin={handleGoogleLogin}
           onLogout={handleLogout}
         />
-        <div key={activeTab} className="tab-content">
+        <main
+          id="main-content"
+          role="tabpanel"
+          tabIndex={-1}
+          aria-labelledby={`tab-${activeTab}`}
+          className="tab-content"
+        >
           {tabComponents[activeTab]}
-        </div>
+        </main>
       </div>
 
       <Toast toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />

@@ -22,6 +22,8 @@ function SkeletonNotes() {
 
 function NoteSection({ section, defaultOpen = true }) {
   const [open, setOpen] = useState(defaultOpen);
+  const sectionId = "note-body-" + (section.heading || "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const headerId = "note-header-" + (section.heading || "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
   const renderBody = (body, keyTerms = []) => {
     if (!Array.isArray(body)) return <span>{typeof body === "string" ? body : JSON.stringify(body)}</span>;
@@ -34,38 +36,40 @@ function NoteSection({ section, defaultOpen = true }) {
   };
 
   return (
-    <div className="notes-section">
+    <section className="notes-section" aria-labelledby={headerId}>
       <button
+        id={headerId}
         className="notes-section-header"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
+        aria-controls={sectionId}
       >
         <span style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
-          {open ? <ChevronDown size={16} strokeWidth={1.8} /> : <ChevronRight size={16} strokeWidth={1.8} />}
-          {section.heading}
+          {open ? <ChevronDown size={16} strokeWidth={1.8} aria-hidden="true" /> : <ChevronRight size={16} strokeWidth={1.8} aria-hidden="true" />}
+          <strong>{section.heading}</strong>
         </span>
         {section.ref && (
-          <span className="source-ref" aria-label={`Source: ${section.ref}`}>
+          <span className="source-ref" aria-label={`Source reference: ${section.ref}`}>
             {section.ref}
           </span>
         )}
       </button>
       {open && (
-        <div className="notes-section-body">
+        <div id={sectionId} role="region" aria-labelledby={headerId} className="notes-section-body">
           <p style={{ marginBottom: "var(--space-sm)", lineHeight: 1.7 }}>
             {renderBody(section.body, section.keyTerms)}
           </p>
           {section.keyTerms?.length > 0 && (
-            <div style={{ display: "flex", gap: "var(--space-xs)", flexWrap: "wrap", marginTop: "var(--space-sm)" }}>
+            <div style={{ display: "flex", gap: "var(--space-xs)", flexWrap: "wrap", marginTop: "var(--space-sm)" }} role="list" aria-label="Key concepts in this section">
               <span style={{ fontSize: "12px", color: "var(--text-light)" }}>Key terms:</span>
               {section.keyTerms.map(t => (
-                <span key={t} className="badge badge-pink">{t}</span>
+                <span key={t} role="listitem" className="badge badge-pink" aria-label={`Key concept: ${t}`}>{t}</span>
               ))}
             </div>
           )}
         </div>
       )}
-    </div>
+    </section>
   );
 }
 

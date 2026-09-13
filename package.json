@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "node ./scripts/build.js",
-    "start": "cd backend && npm start"
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start",
+    "test": "node --test --test-force-exit frontend/tests/*.test.js backend/tests/*.test.js",
+    "test:a11y": "node --test frontend/tests/accessibility.test.js",
+    "test:frontend": "node --test frontend/tests/*.test.js",
+    "test:backend": "node --test --test-force-exit backend/tests/*.test.js"
   }
 }

@@ -244,11 +244,21 @@ export default function SummaryTab({ activeDocId, documents, addToast }) {
               padding: "var(--space-lg)",
             }}>
               <h3 style={{ fontSize: "15px", fontWeight: 600, marginBottom: "var(--space-md)" }}>Recommended Action Items</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-sm)" }}>
+              <div role="list" aria-label="Action items" style={{ display: "flex", flexDirection: "column", gap: "var(--space-sm)" }}>
                 {actions.map((item, i) => (
                   <div
                     key={i}
+                    role="checkbox"
+                    aria-checked={item.done}
+                    tabIndex={0}
+                    aria-label={`${item.text} — ${item.done ? "completed" : "incomplete"}`}
                     onClick={() => toggleAction(i)}
+                    onKeyDown={(e) => {
+                      if (e.key === " " || e.key === "Enter") {
+                        e.preventDefault();
+                        toggleAction(i);
+                      }
+                    }}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -256,13 +266,13 @@ export default function SummaryTab({ activeDocId, documents, addToast }) {
                       cursor: "pointer",
                       padding: "6px 8px",
                       borderRadius: "var(--radius-sm)",
-                      background: item.done ? "var(--surface-cream)" : "transparent",
+                      background: item.done ? "var(--pink-light)" : "transparent",
                     }}
                   >
                     {item.done ? (
-                      <CheckSquare size={16} color="var(--success)" strokeWidth={1.8} />
+                      <CheckSquare size={16} color="var(--success)" strokeWidth={1.8} aria-hidden="true" />
                     ) : (
-                      <Square size={16} color="var(--text-light)" strokeWidth={1.8} />
+                      <Square size={16} color="var(--text-light)" strokeWidth={1.8} aria-hidden="true" />
                     )}
                     <span style={{
                       fontSize: "14px",

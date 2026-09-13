@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { FileText, User, Sun, Moon, ChevronDown, LogOut, LogIn, BookMarked } from "lucide-react";
 
 export default function TopBar({
@@ -38,27 +38,32 @@ export default function TopBar({
     <header className="topbar">
       {/* Left side */}
       <div className="topbar-left">
-        <button className="hamburger-btn" onClick={onHamburger} aria-label="Menu">
+        <button
+          className="hamburger-btn"
+          onClick={onHamburger}
+          aria-label="Open sidebar menu"
+          aria-haspopup="true"
+        >
           <span style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            {[0,1,2].map(i => <span key={i} style={{ display: "block", width: 20, height: 2, background: "var(--text-muted)", borderRadius: 2 }} />)}
+            {[0,1,2].map(i => <span key={i} style={{ display: "block", width: 20, height: 2, background: "var(--text-muted)", borderRadius: 2 }} aria-hidden="true" />)}
           </span>
         </button>
 
         {/* App name (visible on mobile/when sidebar hidden) */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }} className="topbar-brand">
           <div style={{ width: 28, height: 28, background: "linear-gradient(135deg, var(--pink), var(--peach))", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <BookMarked size={14} strokeWidth={1.8} style={{ color: "var(--pink-deep)" }} />
+            <BookMarked size={14} strokeWidth={1.8} style={{ color: "var(--pink-deep)" }} aria-hidden="true" />
           </div>
           <span className="topbar-title">StudyAI</span>
         </div>
 
         {/* Divider */}
-        <span style={{ width: 1, height: 20, background: "var(--border-solid)", display: "block" }} />
+        <span style={{ width: 1, height: 20, background: "var(--border-solid)", display: "block" }} aria-hidden="true" />
 
         {/* Active tab label */}
-        <span style={{ fontFamily: "var(--font-heading)", fontSize: 16, fontWeight: 700, color: "var(--text)" }}>
+        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: 16, fontWeight: 700, color: "var(--text)", margin: 0 }}>
           {TAB_LABELS[activeTab] || activeTab}
-        </span>
+        </h1>
       </div>
 
       {/* Right side */}
@@ -77,14 +82,16 @@ export default function TopBar({
                 maxWidth: 180, overflow: "hidden",
                 transition: "border-color 0.15s",
               }}
-              aria-label="Select document"
+              aria-label={`Select document. Current: ${activeDocName || "Select file"}`}
+              aria-expanded={fileOpen}
+              aria-haspopup="true"
               id="file-picker-btn"
             >
-              <FileText size={13} strokeWidth={1.8} style={{ flexShrink: 0, color: "var(--pink-deep)" }} />
+              <FileText size={13} strokeWidth={1.8} style={{ flexShrink: 0, color: "var(--pink-deep)" }} aria-hidden="true" />
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
                 {activeDocName ? (activeDocName.length > 18 ? activeDocName.slice(0,18) + "..." : activeDocName) : "Select file"}
               </span>
-              <ChevronDown size={11} />
+              <ChevronDown size={11} aria-hidden="true" />
             </button>
 
             {fileOpen && (
@@ -95,13 +102,14 @@ export default function TopBar({
                 boxShadow: "var(--glass-shadow)",
                 minWidth: 220, zIndex: 200, overflow: "hidden",
                 padding: "4px 0",
-              }}>
+              }} role="menu" aria-label="Available documents">
                 {documents.map(doc => {
                   const n = doc.displayName || doc.originalName || doc.filename;
                   const active = doc.id === activeDocId;
                   return (
                     <button
                       key={doc.id}
+                      role="menuitem"
                       onClick={() => { setActiveDocId(doc.id); setFileOpen(false); }}
                       style={{
                         width: "100%", textAlign: "left", padding: "8px 14px",
@@ -113,7 +121,7 @@ export default function TopBar({
                         overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis",
                       }}
                     >
-                      <FileText size={12} strokeWidth={1.8} style={{ flexShrink: 0, color: active ? "var(--pink-deep)" : "var(--text-light)" }} />
+                      <FileText size={12} strokeWidth={1.8} style={{ flexShrink: 0, color: active ? "var(--pink-deep)" : "var(--text-light)" }} aria-hidden="true" />
                       <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
                         {n.length > 30 ? n.slice(0,30) + "..." : n}
                       </span>
@@ -127,15 +135,16 @@ export default function TopBar({
 
         {/* Dark mode toggle */}
         <label className="dark-toggle" htmlFor="dark-mode-toggle" aria-label="Toggle dark mode">
-          {darkMode ? <Moon size={14} strokeWidth={1.8} /> : <Sun size={14} strokeWidth={1.8} />}
+          {darkMode ? <Moon size={14} strokeWidth={1.8} aria-hidden="true" /> : <Sun size={14} strokeWidth={1.8} aria-hidden="true" />}
           <div
             id="dark-mode-toggle"
             className={"toggle-switch " + (darkMode ? "on" : "")}
             onClick={() => setDarkMode(!darkMode)}
             role="switch"
             aria-checked={darkMode}
+            aria-label="Dark mode toggle"
             tabIndex={0}
-            onKeyDown={(e) => e.key === " " && setDarkMode(!darkMode)}
+            onKeyDown={(e) => (e.key === " " || e.key === "Enter") && setDarkMode(!darkMode)}
           >
             <div className="toggle-knob" />
           </div>
@@ -146,12 +155,14 @@ export default function TopBar({
           <button
             onClick={() => setUserOpen(u => !u)}
             className="user-avatar"
-            aria-label="Account"
+            aria-label={`Account menu for ${user?.name || "Student"}`}
+            aria-expanded={userOpen}
+            aria-haspopup="true"
             id="account-btn"
             title={user?.name}
           >
             {user?.picture ? (
-              <img src={user.picture} alt={user.name} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+              <img src={user.picture} alt={`Profile picture of ${user.name}`} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
             ) : initials}
           </button>
 

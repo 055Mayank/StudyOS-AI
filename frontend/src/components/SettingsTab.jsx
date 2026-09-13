@@ -61,12 +61,12 @@ export default function SettingsTab({ user, setUser, darkMode, setDarkMode, addT
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
           <div>
-            <label style={{ display: "block", fontSize: 13, color: "var(--text-muted)", marginBottom: 6 }}>Display Name</label>
-            <input className="input-field" value={name} onChange={e => setName(e.target.value)} placeholder="Your name" />
+            <label htmlFor="settings-display-name" style={{ display: "block", fontSize: 13, color: "var(--text-muted)", marginBottom: 6 }}>Display Name</label>
+            <input id="settings-display-name" className="input-field" value={name} onChange={e => setName(e.target.value)} placeholder="Your name" />
           </div>
           <div>
-            <label style={{ display: "block", fontSize: 13, color: "var(--text-muted)", marginBottom: 6 }}>Email</label>
-            <input className="input-field" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" />
+            <label htmlFor="settings-email" style={{ display: "block", fontSize: 13, color: "var(--text-muted)", marginBottom: 6 }}>Email</label>
+            <input id="settings-email" className="input-field" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" />
           </div>
         </div>
 
@@ -77,8 +77,9 @@ export default function SettingsTab({ user, setUser, darkMode, setDarkMode, addT
               className="btn btn-secondary btn-sm"
               onClick={onGoogleLogin}
               style={{ display: "flex", alignItems: "center", gap: 6 }}
+              aria-label="Link your Google Account"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24">
+              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
                 <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
                 <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>
                 <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
@@ -94,27 +95,31 @@ export default function SettingsTab({ user, setUser, darkMode, setDarkMode, addT
       <div className="settings-section">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-sm)" }}>
           <h3 style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", margin: 0 }}>
-            <Key size={16} /> Generative AI Provider
+            <Key size={16} aria-hidden="true" /> Generative AI Provider
           </h3>
           <span className="badge badge-green" style={{ display: "flex", alignItems: "center", gap: 4 }}>
             ● Active: Google Gemini
           </span>
         </div>
         <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: "var(--space-md)" }}>
-          Connected to <strong>Google Gemini (gemini-3.6-flash)</strong> for real-time lecture synthesis, flashcard extraction, and summary generation.
+          Connected to <strong>Google Gemini (gemini-flash-lite-latest)</strong> for real-time lecture synthesis, flashcard extraction, and summary generation.
         </p>
-        <div style={{ display: "flex", gap: "var(--space-sm)", marginBottom: "var(--space-sm)" }}>
-          <input
-            className="input-field"
-            type={showKey ? "text" : "password"}
-            placeholder="Enter Gemini API key (e.g. AIzaSy...)"
-            value={apiKey}
-            onChange={e => setApiKey(e.target.value)}
-            style={{ flex: 1, fontFamily: "monospace" }}
-          />
-          <button className="btn btn-secondary btn-sm" onClick={() => setShowKey(!showKey)}>
-            {showKey ? "Hide" : "Show"}
-          </button>
+        <div>
+          <label htmlFor="settings-gemini-key" style={{ display: "block", fontSize: 13, color: "var(--text-muted)", marginBottom: 6 }}>Custom Gemini API Key</label>
+          <div style={{ display: "flex", gap: "var(--space-sm)", marginBottom: "var(--space-sm)" }}>
+            <input
+              id="settings-gemini-key"
+              className="input-field"
+              type={showKey ? "text" : "password"}
+              placeholder="Enter Gemini API key (optional)"
+              value={apiKey}
+              onChange={e => setApiKey(e.target.value)}
+              style={{ flex: 1, fontFamily: "monospace" }}
+            />
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowKey(!showKey)} aria-label={showKey ? "Hide API key" : "Show API key"}>
+              {showKey ? "Hide" : "Show"}
+            </button>
+          </div>
         </div>
         <div style={{ display: "flex", gap: "var(--space-sm)", alignItems: "center" }}>
           <button className="btn btn-primary btn-sm" onClick={saveApiKey}>Update Key</button>

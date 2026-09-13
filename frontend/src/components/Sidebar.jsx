@@ -112,16 +112,33 @@ export default function Sidebar({
       <div className="nav-divider" />
 
       {/* Primary Navigation — 4 tabs */}
-      <div className="sidebar-nav">
-        {NAV_ITEMS.map(({ id, icon: Icon, label }) => (
+      <div className="sidebar-nav" role="tablist" aria-label="Workspace navigation">
+        {NAV_ITEMS.map(({ id, icon: Icon, label }, index) => (
           <button
             key={id}
+            id={`tab-${id}`}
+            role="tab"
+            aria-selected={activeTab === id}
+            aria-controls={`panel-${id}`}
+            tabIndex={activeTab === id ? 0 : -1}
             className={"nav-item " + (activeTab === id ? "active" : "")}
             onClick={() => setActiveTab(id)}
-            aria-current={activeTab === id ? "page" : undefined}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                const next = NAV_ITEMS[(index + 1) % NAV_ITEMS.length].id;
+                setActiveTab(next);
+                document.getElementById(`tab-${next}`)?.focus();
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                const prev = NAV_ITEMS[(index - 1 + NAV_ITEMS.length) % NAV_ITEMS.length].id;
+                setActiveTab(prev);
+                document.getElementById(`tab-${prev}`)?.focus();
+              }
+            }}
             aria-label={label}
           >
-            <Icon size={17} strokeWidth={1.8} />
+            <Icon size={17} strokeWidth={1.8} aria-hidden="true" />
             {label}
           </button>
         ))}
@@ -134,7 +151,7 @@ export default function Sidebar({
           <div style={{ padding: "0 12px 6px", fontSize: "10px", color: "var(--text-light)", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
             Documents
           </div>
-          <div className="doc-list">
+          <div className="doc-list" role="list" aria-label="Uploaded documents">
             {documents.map(doc => {
               const name = doc.displayName || doc.originalName || doc.filename;
               const isDone = doc.status === "done" || doc.processingStatus === "done";
@@ -144,21 +161,22 @@ export default function Sidebar({
                   key={doc.id}
                   className={"doc-item " + (doc.id === activeDocId ? "active" : "")}
                   onClick={() => setActiveDocId(doc.id)}
-                  role="button"
+                  role="listitem"
                   tabIndex={0}
-                  onKeyDown={(e) => e.key === "Enter" && setActiveDocId(doc.id)}
+                  aria-label={`Select document ${name}`}
+                  onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setActiveDocId(doc.id)}
                   style={{ position: "relative" }}
                 >
                   {!isDone ? (
-                    <Loader size={12} style={{ animation: "spin 1s linear infinite", flexShrink: 0, color: "var(--pink-deep)" }} />
+                    <Loader size={12} style={{ animation: "spin 1s linear infinite", flexShrink: 0, color: "var(--pink-deep)" }} aria-hidden="true" />
                   ) : (
-                    <CheckCircle size={12} style={{ color: "var(--success)", flexShrink: 0 }} />
+                    <CheckCircle size={12} style={{ color: "var(--success)", flexShrink: 0 }} aria-hidden="true" />
                   )}
                   <span className="doc-item-name" title={name}>{name}</span>
                   <button
                     onClick={(e) => handleDeleteClick(e, doc.id)}
-                    title={isConfirming ? "Click again to confirm" : "Delete document"}
-                    aria-label="Delete document"
+                    title={isConfirming ? "Click again to confirm" : `Delete ${name}`}
+                    aria-label={isConfirming ? `Confirm deletion of ${name}` : `Delete document ${name}`}
                     style={{
                       marginLeft: "auto", flexShrink: 0,
                       background: isConfirming ? "rgba(232,123,123,0.15)" : "transparent",
@@ -172,7 +190,7 @@ export default function Sidebar({
                     onMouseEnter={e => { if (!isConfirming) e.currentTarget.style.color = "var(--error)"; }}
                     onMouseLeave={e => { if (!isConfirming) e.currentTarget.style.color = "var(--text-light)"; }}
                   >
-                    {isConfirming ? "Confirm?" : <Trash2 size={10} />}
+                    {isConfirming ? "Confirm?" : <Trash2 size={10} aria-hidden="true" />}
                   </button>
                 </div>
               );
@@ -187,11 +205,15 @@ export default function Sidebar({
       <div className="nav-divider" />
       <div style={{ padding: "var(--space-sm)" }}>
         <button
+          id="tab-settings"
+          role="tab"
+          aria-selected={activeTab === "settings"}
+          aria-controls="panel-settings"
           className={"nav-item " + (activeTab === "settings" ? "active" : "")}
           onClick={() => setActiveTab("settings")}
           aria-label="Settings"
         >
-          <Settings size={17} strokeWidth={1.8} />
+          <Settings size={17} strokeWidth={1.8} aria-hidden="true" />
           Settings
         </button>
       </div>

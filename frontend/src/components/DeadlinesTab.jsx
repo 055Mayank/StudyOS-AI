@@ -260,15 +260,24 @@ export default function DeadlinesTab({ addToast, onGoogleLogin, user }) {
       {showAdd && (
         <div style={{ background: "var(--surface)", border: "1px solid var(--border-solid)", borderRadius: "var(--radius-lg)", padding: "var(--space-lg)", marginBottom: "var(--space-lg)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--space-md)" }}>
-            <strong style={{ fontSize: 14 }}>New Deadline</strong>
-            <button onClick={() => setShowAdd(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-light)" }}>
-              <X size={15} />
+            <h3 style={{ fontSize: 14, margin: 0 }}>Add New Deadline</h3>
+            <button onClick={() => setShowAdd(false)} aria-label="Close add deadline form" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-light)" }}>
+              <X size={15} aria-hidden="true" />
             </button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: "var(--space-sm)", marginBottom: "var(--space-md)" }}>
-            <input className="input-field" placeholder="Assignment or exam title" value={newDl.title} onChange={e => setNewDl({ ...newDl, title: e.target.value })} />
-            <input className="input-field" placeholder="Course code (e.g. CS 101)" value={newDl.course} onChange={e => setNewDl({ ...newDl, course: e.target.value })} />
-            <input className="input-field" type="date" value={newDl.dueDate} onChange={e => setNewDl({ ...newDl, dueDate: e.target.value })} />
+            <div>
+              <label htmlFor="new-deadline-title" style={{ display: "block", fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>Assignment / Exam Title</label>
+              <input id="new-deadline-title" className="input-field" placeholder="e.g. Problem Set 4" value={newDl.title} onChange={e => setNewDl({ ...newDl, title: e.target.value })} required />
+            </div>
+            <div>
+              <label htmlFor="new-deadline-course" style={{ display: "block", fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>Course Code</label>
+              <input id="new-deadline-course" className="input-field" placeholder="e.g. CS 101" value={newDl.course} onChange={e => setNewDl({ ...newDl, course: e.target.value })} />
+            </div>
+            <div>
+              <label htmlFor="new-deadline-date" style={{ display: "block", fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>Due Date</label>
+              <input id="new-deadline-date" className="input-field" type="date" value={newDl.dueDate} onChange={e => setNewDl({ ...newDl, dueDate: e.target.value })} required />
+            </div>
           </div>
           <button className="btn btn-primary btn-sm" onClick={addDeadline} disabled={saving}>
             {saving ? "Saving..." : "Save Deadline"}
@@ -279,13 +288,13 @@ export default function DeadlinesTab({ addToast, onGoogleLogin, user }) {
       {/* Timeline List */}
       {sorted.length === 0 && !loading && (
         <div className="empty-state">
-          <Calendar size={36} strokeWidth={1.5} style={{ color: "var(--pink-deep)", margin: "0 auto var(--space-md)" }} />
-          <h3>No deadlines scheduled</h3>
+          <Calendar size={36} strokeWidth={1.5} style={{ color: "var(--pink-deep)", margin: "0 auto var(--space-md)" }} aria-hidden="true" />
+          <h2>No deadlines scheduled</h2>
           <p>Add an assignment manually or connect Google Classroom to automatically sync dates.</p>
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-sm)" }}>
+      <div role="list" aria-label="Upcoming deadlines timeline" style={{ display: "flex", flexDirection: "column", gap: "var(--space-sm)" }}>
         {sorted.map((dl, idx) => {
           const countdown = getCountdown(dl.dueDate);
           const colorBar = COURSE_BAR_COLORS[idx % COURSE_BAR_COLORS.length];
@@ -296,6 +305,7 @@ export default function DeadlinesTab({ addToast, onGoogleLogin, user }) {
           return (
             <div
               key={dl.id}
+              role="listitem"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -317,7 +327,7 @@ export default function DeadlinesTab({ addToast, onGoogleLogin, user }) {
                 </span>
                 {dl.source === "classroom" && (
                   <span style={{ fontSize: 10, color: "var(--text-light)", display: "flex", alignItems: "center", gap: 3 }}>
-                    <GraduationCap size={11} /> Classroom
+                    <GraduationCap size={11} aria-hidden="true" /> Classroom
                   </span>
                 )}
               </div>
@@ -334,9 +344,10 @@ export default function DeadlinesTab({ addToast, onGoogleLogin, user }) {
                 <button
                   onClick={() => removeDeadline(dl.id)}
                   style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-light)", padding: 4 }}
+                  aria-label={`Remove deadline: ${dl.title}`}
                   title="Remove deadline"
                 >
-                  <X size={14} />
+                  <X size={14} aria-hidden="true" />
                 </button>
               </div>
             </div>

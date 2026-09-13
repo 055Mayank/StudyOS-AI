@@ -200,7 +200,7 @@ export default function FlashcardsTab({ activeDocId, documents, addToast }) {
           textAlign: "center",
           gap: "var(--space-md)"
         }}>
-          <AlertCircle size={32} color="var(--error)" strokeWidth={1.75} />
+          <AlertCircle size={32} color="var(--error)" strokeWidth={1.75} aria-hidden="true" />
           <div>
             <h3 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "4px" }}>
               Failed to generate flashcards
@@ -210,20 +210,32 @@ export default function FlashcardsTab({ activeDocId, documents, addToast }) {
             </p>
           </div>
           <button className="btn btn-primary btn-sm" onClick={() => loadCards()}>
-            <RefreshCw size={14} strokeWidth={1.8} />
+            <RefreshCw size={14} strokeWidth={1.8} aria-hidden="true" />
             Try Again
           </button>
         </div>
       ) : cards && cards.length > 0 ? (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-lg)" }}>
+          {/* Live region for screen readers */}
+          <div className="sr-only" aria-live="polite" aria-atomic="true">
+            {currentCard ? `Flashcard ${current + 1} of ${cards.length}. Showing ${flipped ? "Answer" : "Question"}: ${flipped ? currentCard.back : currentCard.front}` : ""}
+          </div>
+
           {/* Progress bar */}
           <div style={{ width: "100%", maxWidth: 640 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--text-muted)", marginBottom: 6 }}>
               <span>Card {current + 1} of {cards.length}</span>
               <span>{progressPercent}% completed</span>
             </div>
-            <div style={{ width: "100%", height: 6, background: "var(--border)", borderRadius: "var(--radius-full)", overflow: "hidden" }}>
-              <div style={{ width: `${progressPercent}%`, height: "100%", background: "var(--primary)", transition: "width 0.3s ease" }} />
+            <div
+              role="progressbar"
+              aria-valuenow={progressPercent}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Flashcard study progress"
+              style={{ width: "100%", height: 6, background: "var(--border)", borderRadius: "var(--radius-pill)", overflow: "hidden" }}
+            >
+              <div style={{ width: `${progressPercent}%`, height: "100%", background: "var(--pink-deep)", transition: "width 0.3s ease" }} />
             </div>
           </div>
 
@@ -233,13 +245,18 @@ export default function FlashcardsTab({ activeDocId, documents, addToast }) {
             onClick={() => setFlipped(!flipped)}
             role="button"
             tabIndex={0}
-            aria-label="Flip flashcard"
-            onKeyDown={(e) => e.key === "Enter" && setFlipped(!flipped)}
+            aria-label={flipped ? `Card ${current + 1} showing answer: ${currentCard?.back}. Press space to flip back.` : `Card ${current + 1} showing question: ${currentCard?.front}. Press space to flip to answer.`}
+            onKeyDown={(e) => {
+              if (e.key === " " || e.key === "Enter") {
+                e.preventDefault();
+                setFlipped(!flipped);
+              }
+            }}
             style={{ width: "100%", maxWidth: 640, minHeight: 240, cursor: "pointer", perspective: "1000px" }}
           >
             <div className={`flashcard ${flipped ? "flipped" : ""}`} style={{
-              background: flipped ? "var(--surface-cream)" : "var(--surface)",
-              border: "1px solid var(--border)",
+              background: flipped ? "var(--surface)" : "var(--surface)",
+              border: "1px solid var(--border-solid)",
               borderRadius: "var(--radius-lg)",
               padding: "var(--space-xl)",
               minHeight: 240,
@@ -253,7 +270,7 @@ export default function FlashcardsTab({ activeDocId, documents, addToast }) {
               transition: "transform 0.4s ease, background 0.3s ease",
             }}>
               <span style={{ position: "absolute", top: 16, right: 16, fontSize: 11, color: "var(--text-light)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                {flipped ? "Answer" : "Question"} · Click or Space to flip
+                {flipped ? "Answer" : "Question"} · Press Space or Click to flip
               </span>
 
               <div style={{ fontSize: flipped ? 16 : 18, fontWeight: flipped ? 400 : 600, lineHeight: 1.6, color: "var(--text)", maxWidth: 520 }}>
@@ -263,23 +280,27 @@ export default function FlashcardsTab({ activeDocId, documents, addToast }) {
           </div>
 
           {/* Navigation & rating controls */}
-          <div style={{ display: "flex", gap: "var(--space-md)", alignItems: "center", flexWrap: "wrap", justifyContent: "center" }}>
-            <button className="btn btn-secondary" onClick={prev} aria-label="Previous card">
-              <ChevronLeft size={18} strokeWidth={1.8} />
+          <div
+            role="group"
+            aria-label="Flashcard controls and mastery rating"
+            style={{ display: "flex", gap: "var(--space-md)", alignItems: "center", flexWrap: "wrap", justifyContent: "center" }}
+          >
+            <button className="btn btn-secondary" onClick={prev} aria-label="Previous flashcard">
+              <ChevronLeft size={18} strokeWidth={1.8} aria-hidden="true" />
             </button>
 
-            <button className="btn btn-secondary btn-sm" onClick={() => rate("hard")} style={{ borderColor: "rgba(232,123,123,0.4)" }}>
+            <button className="btn btn-secondary btn-sm" onClick={() => rate("hard")} aria-label="Rate card as Hard" style={{ borderColor: "rgba(232,123,123,0.5)" }}>
               Hard
             </button>
-            <button className="btn btn-secondary btn-sm" onClick={() => rate("good")} style={{ borderColor: "rgba(244,198,214,0.6)" }}>
+            <button className="btn btn-secondary btn-sm" onClick={() => rate("good")} aria-label="Rate card as Good" style={{ borderColor: "rgba(244,198,214,0.7)" }}>
               Good
             </button>
-            <button className="btn btn-secondary btn-sm" onClick={() => rate("easy")} style={{ borderColor: "rgba(123,198,126,0.4)" }}>
+            <button className="btn btn-secondary btn-sm" onClick={() => rate("easy")} aria-label="Rate card as Easy" style={{ borderColor: "rgba(46,125,50,0.5)" }}>
               Easy
             </button>
 
-            <button className="btn btn-secondary" onClick={next} aria-label="Next card">
-              <ChevronRight size={18} strokeWidth={1.8} />
+            <button className="btn btn-secondary" onClick={next} aria-label="Next flashcard">
+              <ChevronRight size={18} strokeWidth={1.8} aria-hidden="true" />
             </button>
           </div>
         </div>
