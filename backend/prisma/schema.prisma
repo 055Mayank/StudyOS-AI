@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String     @id @default(cuid())
+  email              String     @unique
+  passwordHash       String?
+  name               String?
+  authProvider       String     @default("local")
+  googleRefreshToken String?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  documents          Document[]
+  deadlines          Deadline[]
+}
+
+model Document {
+  id               String            @id @default(cuid())
+  userId           String
+  filename         String
+  originalName     String
+  mimeType         String
+  filePath         String
+  source           String            @default("upload")
+  courseTag        String?
+  processingStatus String            @default("pending")
+  jobId            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  user             User              @relation(fields: [userId], references: [id])
+  extractedContent ExtractedContent?
+  notes            Note[]
+  flashcards       Flashcard[]
+  summaries        Summary[]
+}
+
+model ExtractedContent {
+  id             String   @id @default(cuid())
+  documentId     String   @unique
+  structuredJson String
+  rawText        String
+  sections       String
+  createdAt      DateTime @default(now())
+  document       Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model Note {
+  id          String   @id @default(cuid())
+  documentId  String
+  content     String
+  generatedAt DateTime @default(now())
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model Flashcard {
+  id          String   @id @default(cuid())
+  documentId  String
+  front       String
+  back        String
+  difficulty  String?
+  generatedAt DateTime @default(now())
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model Summary {
+  id          String   @id @default(cuid())
+  documentId  String
+  tldr        String
+  takeaways   String
+  actionItems String
+  generatedAt DateTime @default(now())
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model Deadline {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  course    String?
+  dueDate   DateTime
+  source    String   @default("manual")
+  sourceId  String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}

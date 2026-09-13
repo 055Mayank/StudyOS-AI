@@ -1,0 +1,31 @@
+{
+  "name": "ai-student-workspace-backend",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "multer": "^1.4.5-lts.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "pdf-parse": "^1.1.1",
+    "mammoth": "^1.8.0",
+    "express-rate-limit": "^7.4.1",
+    "uuid": "^10.0.0",
+    "openai": "^4.63.0",
+    "google-auth-library": "^9.14.1",
+    "googleapis": "^144.0.0",
+    "@prisma/client": "^5.19.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7",
+    "prisma": "^5.19.1"
+  }
+}
